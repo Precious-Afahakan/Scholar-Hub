@@ -6,6 +6,9 @@ export const ValidateRegisterData = (userInput: RegisterDTO) => {
     name: Joi.string().min(2).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).max(20).required(),
+    department: Joi.string(),
+    level: Joi.number(),
+    entryYear: Joi.number(),
   });
 
   return registerSchema.validate(userInput);

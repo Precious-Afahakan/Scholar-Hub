@@ -1,21 +1,22 @@
 import { Request, Response } from "express";
-import { Service } from "./Service";
-import { RegisterDTO, LoginDTO } from "../Model/dto";
-import { timeStamp } from "console";
+import { ScholarService } from "../services/scholar.service";
+import { RegisterDTO, LoginDTO } from "../../Model/dto";
+import { responseObj } from "../../utils/responseObj";
 
 export class Controller {
-  private service: Service;
+  private service: ScholarService;
   constructor() {
-    this.service = new Service();
+    this.service = new ScholarService();
   }
 
   async Register(req: Request, res: Response) {
     const data: RegisterDTO = req.body;
     const { scholar, token } = await this.service.Register({ ...data });
+
     return res.status(200).json({
       success: true,
       message: "Registration complete",
-      scholar,
+      scholar: responseObj(scholar),
       token,
     });
   }
@@ -26,7 +27,7 @@ export class Controller {
     return res.status(200).json({
       success: true,
       message: "Admin Registration complete",
-      admin,
+      admin: responseObj(admin),
       token,
     });
   }
@@ -34,9 +35,12 @@ export class Controller {
   async Login(req: Request, res: Response) {
     const data: LoginDTO = req.body;
     const { scholar, token } = await this.service.Login({ ...data });
-    return res
-      .status(200)
-      .json({ success: true, message: "Login successful", scholar, token });
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      scholar: responseObj(scholar),
+      token,
+    });
   }
 
   async uploadProfilePicture(req: Request, res: Response) {
@@ -48,12 +52,12 @@ export class Controller {
 
     const scholarId = (req as any).scholar.id;
     const imageUrl = (req.file as any).path;
-    const publidId = (req.file as any).filename;
+    const publicId = (req.file as any).filename;
 
     const scholar = await this.service.uploadProfilePicture(
       scholarId,
       imageUrl,
-      publidId
+      publicId
     );
 
     return res.status(200).json({

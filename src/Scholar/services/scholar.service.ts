@@ -1,26 +1,59 @@
-import { Repository } from "./Repo";
-import { IScholar } from "../Model/scholarModel";
+import { ScholarRepository } from "../repositories/scholar.repository";
+import { IScholar } from "../../Model/scholarModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { LoginDTO, RegisterDTO } from "../Model/dto";
-import { HttpException } from "../utils/HttpException";
-import { EmailService } from "../config/mailer";
-import cloudinary from "../config/cloudinary";
+import { LoginDTO, RegisterDTO } from "../../Model/dto";
+import { HttpException } from "../../utils/httpException";
+import { EmailService } from "../../config/mailer";
+import cloudinary from "../../config/cloudinary";
+import { generateMatNumber } from "../../utils/generateMatNumber";
 
-export class Service {
-  private repo: Repository;
+export class ScholarService {
+  private repo: ScholarRepository;
   private mailer: EmailService;
   constructor() {
-    this.repo = new Repository();
+    this.repo = new ScholarRepository();
     this.mailer = new EmailService();
   }
 
   private async generateToken(scholar: IScholar) {
     return jwt.sign(
-      { id: scholar._id, email: scholar.email, role: scholar.role },
+      {
+        id: scholar._id,
+        email: scholar.email,
+        role: scholar.role,
+        matNumber: scholar.matNumber ?? null,
+      },
       process.env.JWT_SECRET as string,
       { expiresIn: "3h" }
     );
+  }
+
+  private async generateUniqueMatNumber(
+    department?: string,
+    entryYear?: number
+  ): Promise<string> {
+    let matNumber: string;
+    let exist = true;
+
+    while (exist) {
+      matNumber = generateMatNumber(department, entryYear);
+      const scholar = await this.repo.getScholarByMatNo(matNumber);
+      exist = !!scholar;
+    }
+
+    return matNumber!;
+  }
+
+  private sanitizeScholar(scholar: IScholar) {
+    const obj = scholar.toObject();
+
+    delete obj.password;
+    delete obj._v;
+    delete obj.createdAt;
+    delete obj.updatedAt;
+
+    return obj;
   }
 
   async Register(
@@ -30,14 +63,23 @@ export class Service {
     if (scholarExists) throw new HttpException(401, "Scholar already exists");
 
     const hashedPassword = await bcrypt.hash(scholarInput.password, 10);
-    const scholar = await this.repo.CreateScholar({
+
+    const entryYear = scholarInput.entryYear ?? new Date().getFullYear();
+
+    const matNumber = await this.generateUniqueMatNumber(
+      scholarInput.department,
+      entryYear
+    );
+
+    const scholar = await this.repo.createScholar({
       ...scholarInput,
       password: hashedPassword,
+      matNumber,
     });
 
     const token = await this.generateToken(scholar);
 
-    return { scholar, token };
+    return { scholar: this.sanitizeScholar(scholar), token };
   }
 
   async RegisterAdmin(
@@ -47,7 +89,7 @@ export class Service {
     if (adminExists) throw new HttpException(401, "Admin already exists");
 
     const hashedPassword = await bcrypt.hash(adminInput.password, 10);
-    const admin = await this.repo.CreateScholar({
+    const admin = await this.repo.createScholar({
       ...adminInput,
       password: hashedPassword,
       role: "admin",
@@ -55,7 +97,7 @@ export class Service {
 
     const token = await this.generateToken(admin);
 
-    return { admin, token };
+    return { admin: this.sanitizeScholar(admin), token };
   }
 
   async Login(scholarInput: LoginDTO) {
@@ -66,7 +108,7 @@ export class Service {
 
     const token = await this.generateToken(scholar);
 
-    return { scholar, token };
+    return { scholar: this.sanitizeScholar(scholar), token };
   }
 
   async uploadProfilePicture(
@@ -109,7 +151,7 @@ export class Service {
       `Here's your OTP ${otp}, it expires in 10 minutes`
     );
 
-    return { message: "OTP sent successfully babyyy" };
+    return { message: "OTP sent successfully" };
   }
 
   async resetPassword(email: string, otp: string, newPassword: string) {
