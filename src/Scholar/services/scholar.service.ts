@@ -60,7 +60,7 @@ export class ScholarService {
     scholarInput: RegisterDTO
   ): Promise<{ scholar: IScholar; token: string }> {
     const scholarExists = await this.repo.getScholarByEmail(scholarInput.email);
-    if (scholarExists) throw new HttpException(401, "Scholar already exists");
+    if (scholarExists) throw new HttpException(400, "Scholar already exists");
 
     const hashedPassword = await bcrypt.hash(scholarInput.password, 10);
 
@@ -86,7 +86,7 @@ export class ScholarService {
     adminInput: RegisterDTO
   ): Promise<{ admin: IScholar; token: string }> {
     const adminExists = await this.repo.getScholarByEmail(adminInput.email);
-    if (adminExists) throw new HttpException(401, "Admin already exists");
+    if (adminExists) throw new HttpException(400, "Admin already exists");
 
     const hashedPassword = await bcrypt.hash(adminInput.password, 10);
     const admin = await this.repo.createScholar({
@@ -117,7 +117,7 @@ export class ScholarService {
     publicId: string
   ) {
     const scholar = await this.repo.getOneScholar(scholarId);
-    if (!scholar) throw new HttpException(404, "Scholar not found");
+    if (!scholar) throw new HttpException(400, "Scholar not found");
 
     if (scholar.profileImageId)
       await cloudinary.uploader.destroy(scholar.profileImageId);
@@ -127,7 +127,7 @@ export class ScholarService {
       profileImageId: publicId,
     });
 
-    if (!updated) throw new HttpException(404, "Image Upload failed");
+    if (!updated) throw new HttpException(500, "Image Upload failed");
 
     return updated;
   }
@@ -156,10 +156,10 @@ export class ScholarService {
 
   async resetPassword(email: string, otp: string, newPassword: string) {
     const scholar = await this.repo.getScholarByEmail(email);
-    if (!scholar) throw new HttpException(401, "Scholar not found");
-    if (scholar.verifyOtp !== otp) throw new HttpException(401, "Invalid OTP");
+    if (!scholar) throw new HttpException(400, "Scholar not found");
+    if (scholar.verifyOtp !== otp) throw new HttpException(422, "Invalid OTP");
     if (scholar.verifyOtpExpireAt < Date.now())
-      throw new HttpException(401, "OTP Expired");
+      throw new HttpException(422, "OTP Expired");
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -180,7 +180,7 @@ export class ScholarService {
 
   async getAllScholars() {
     const scholars = await this.repo.getAllScholars();
-    if (!scholars) throw new HttpException(401, "An error occurred");
+    if (!scholars) throw new HttpException(500, "An error occurred");
     return scholars;
   }
 

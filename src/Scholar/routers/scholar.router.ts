@@ -1,5 +1,5 @@
 import express from "express";
-import { Controller } from "../controllers/scholar.controller";
+import { ScholarController } from "../controllers/scholar.controller";
 import {
   validateLogin,
   validateRegister,
@@ -8,7 +8,7 @@ import { authMiddleware } from "../../middleware/authHandler";
 import { requireAdmin } from "../../middleware/roleMiddleware";
 import { upload } from "../../middleware/multer.upload";
 
-const controller = new Controller();
+const controller = new ScholarController();
 
 const scholarRouter = express.Router();
 

@@ -1,10 +1,7 @@
-import {
-  Document,
-  InferSchemaType,
-  model,
-  Schema,
-  HydratedDocument,
-} from "mongoose";
+import { model, Schema, Document } from "mongoose";
+import { IResult } from "./result.interface";
+
+interface ResultDocument extends IResult, Document {}
 
 const courseResultSchema = new Schema(
   {
@@ -74,6 +71,4 @@ const resultSchema = new Schema(
 
 resultSchema.index({ matNumber: 1, session: 1, semester: 1 }, { unique: true });
 
-export type IResult = HydratedDocument<InferSchemaType<typeof resultSchema>>;
-
-export const ResultModel = model<IResult>("Result", resultSchema);
+export const ResultModel = model<ResultDocument>("Result", resultSchema);

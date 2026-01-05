@@ -1,4 +1,4 @@
-import { IResult } from "../../Model/resultModel";
+import { ICourseResult, IResult, Semester } from "../../Model/result.interface";
 import { ScholarRepository } from "../repositories/scholar.repository";
 import { ResultRepository } from "../repositories/result.repository";
 import { HttpException } from "../../utils/httpException";
@@ -12,13 +12,8 @@ export class ResultService {
   async uploadResult(
     matNumber: string,
     session: string,
-    semester: "First" | "Second",
-    results: {
-      course: string;
-      grade: "A" | "B" | "C" | "D" | "E" | "F";
-      score: number;
-      unit: number;
-    }[]
+    semester: Semester,
+    results: ICourseResult[]
   ): Promise<IResult> {
     const scholar = await this.scholarRepo.getScholarByMatNo(matNumber);
     if (!scholar) throw new HttpException(404, "Scholar not found");
@@ -37,41 +32,63 @@ export class ResultService {
     );
     if (existing) throw new HttpException(409, "Result already exists");
 
+    const currentYear = new Date().getFullYear();
+    const defaultSession = `${currentYear - 1}/${currentYear}`;
+    const resultSession = session || defaultSession;
+
     return await this.resultRepo.createResult({
       matNumber,
-      session: "2025/2026",
+      session: resultSession,
       semester,
       department: scholar.department,
       level: scholar.level,
-      results: results as any,
+      results,
     });
   }
 
-  async getResultsByMatNumber(matNumber: string): Promise<IResult[]> {
-    return this.resultRepo.getResultsByMatNumber(matNumber);
-  }
-
   async getOneResult(
+    user: { role?: string; matNumber?: string },
     matNumber: string,
     session: string,
-    semester: "First" | "Second"
+    semester: Semester
   ): Promise<IResult | null> {
-    return this.resultRepo.getOneResult(matNumber, session, semester);
+    if (user.role === "scholar" && user.matNumber !== matNumber)
+      throw new HttpException(
+        403,
+        "Access denied: You can only access your own result"
+      );
+
+    const result = await this.resultRepo.getOneResult(
+      matNumber,
+      session,
+      semester
+    );
+    if (result.length === 0) throw new HttpException(404, "Result not found");
+    return result;
+  }
+
+  async getResultsByMatNumber(
+    user: { role?: string; matNumber?: string },
+    matNumber: string
+  ): Promise<IResult[]> {
+    if (user.role === "scholar" && user.matNumber !== matNumber)
+      throw new HttpException(
+        403,
+        "Access denied: You can only access your own result"
+      );
+    const result = await this.resultRepo.getResultsByMatNumber(matNumber);
+    if (result.length === 0) throw new HttpException(404, "Result not found");
+    return result;
   }
 
   async updateResult(
     matNumber: string,
     session: string,
-    semester: "First" | "Second",
-    results: {
-      course: string;
-      score: number;
-      grade: "A" | "B" | "C" | "D" | "E" | "F";
-      unit: number;
-    }[]
+    semester: Semester,
+    results: ICourseResult[]
   ): Promise<IResult | null> {
     return this.resultRepo.updateResult(matNumber, session, semester, {
-      results: results as any,
+      results,
     });
   }
 }

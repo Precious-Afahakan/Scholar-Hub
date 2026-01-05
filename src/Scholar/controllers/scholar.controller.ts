@@ -3,7 +3,7 @@ import { ScholarService } from "../services/scholar.service";
 import { RegisterDTO, LoginDTO } from "../../Model/dto";
 import { responseObj } from "../../utils/responseObj";
 
-export class Controller {
+export class ScholarController {
   private service: ScholarService;
   constructor() {
     this.service = new ScholarService();
