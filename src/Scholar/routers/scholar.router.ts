@@ -1,14 +1,14 @@
 import express from "express";
-import { Controller } from "./Controller";
+import { ScholarController } from "../controllers/scholar.controller";
 import {
   validateLogin,
   validateRegister,
-} from "../middleware/validateMiddleware";
-import { authMiddleware } from "../middleware/authHandler";
-import { requireAdmin } from "../middleware/roleMiddleware";
-import { upload } from "../middleware/multer.upload";
+} from "../../middleware/validateMiddleware";
+import { authMiddleware } from "../../middleware/authHandler";
+import { requireAdmin } from "../../middleware/roleMiddleware";
+import { upload } from "../../middleware/multer.upload";
 
-const controller = new Controller();
+const controller = new ScholarController();
 
 const scholarRouter = express.Router();
 

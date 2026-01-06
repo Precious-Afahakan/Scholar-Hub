@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { HttpException } from "../utils/HttpException";
+import { HttpException } from "../utils/httpException";
 import { ValidateLoginData, ValidateRegisterData } from "../utils/validate";
 
 export const validateRegister = (

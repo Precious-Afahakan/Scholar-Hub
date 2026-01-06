@@ -1,13 +1,17 @@
-import { IScholar, ScholarModel } from "../Model/scholarModel";
+import { IScholar, ScholarModel } from "../../Model/scholarModel";
 
-export class Repository {
-  async CreateScholar(scholarInput: Partial<IScholar>): Promise<IScholar> {
+export class ScholarRepository {
+  async createScholar(scholarInput: Partial<IScholar>): Promise<IScholar> {
     const scholar = await ScholarModel.create(scholarInput);
     return scholar;
   }
 
   async getOneScholar(id: string): Promise<IScholar | null> {
     return await ScholarModel.findById(id);
+  }
+
+  async getScholarByMatNo(matNumber: string): Promise<IScholar | null> {
+    return await ScholarModel.findOne({ matNumber });
   }
 
   async getScholarByEmail(email: string): Promise<IScholar | null> {
@@ -27,6 +31,10 @@ export class Repository {
   }
 
   async deleteScholar(id: string) {
-    return await ScholarModel.findByIdAndDelete(id);
+    return await ScholarModel.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true }
+    );
   }
 }
