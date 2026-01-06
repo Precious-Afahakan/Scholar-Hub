@@ -58,12 +58,8 @@ export class ResultController {
     const { matNumber, session, semester } = req.params;
     const { results } = req.body;
 
-    if (user.role !== "admin")
-      return res
-        .status(403)
-        .json({ message: "Access denied: Only admin can update result" });
-
     const updatedResult = await this.resultService.updateResult(
+      user,
       matNumber,
       session,
       semester as Semester,

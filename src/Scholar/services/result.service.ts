@@ -82,11 +82,18 @@ export class ResultService {
   }
 
   async updateResult(
+    user: { role?: string; matNumber?: string },
     matNumber: string,
     session: string,
     semester: Semester,
     results: ICourseResult[]
   ): Promise<IResult | null> {
+    if (user.role !== "admin")
+      throw new HttpException(
+        403,
+        "Access denied: Only admin can update result"
+      );
+
     return this.resultRepo.updateResult(matNumber, session, semester, {
       results,
     });
