@@ -50,7 +50,7 @@ export class ScholarController {
         .json({ success: false, message: "No Image uploaded" });
     }
 
-    const scholarId = (req as any).scholar.id;
+    const scholarId = (req as any).user.id;
     const imageUrl = (req.file as any).path;
     const publicId = (req.file as any).filename;
 

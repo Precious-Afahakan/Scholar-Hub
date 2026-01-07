@@ -14,5 +14,5 @@ export interface IResult {
   level: number;
   session: string;
   semester: Semester;
-  result: ICourseResult[];
+  results: ICourseResult[];
 }

@@ -1,4 +1,5 @@
-import { IResult, ResultModel } from "../../Model/resultModel";
+import { IResult } from "../../Model/result.interface";
+import { ResultModel } from "../../Model/resultModel";
 
 export class ResultRepository {
   async createResult(resultInput: Partial<IResult>): Promise<IResult> {
