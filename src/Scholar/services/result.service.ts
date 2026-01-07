@@ -63,7 +63,13 @@ export class ResultService {
       session,
       semester
     );
-    if (result.length === 0) throw new HttpException(404, "Result not found");
+    if (!result) {
+      throw new HttpException(404, "Result not found");
+    }
+
+    if (result.results.length === 0)
+      throw new HttpException(404, "Result not found");
+
     return result;
   }
 

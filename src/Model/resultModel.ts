@@ -1,7 +1,7 @@
 import { model, Schema, Document } from "mongoose";
 import { IResult } from "./result.interface";
 
-interface ResultDocument extends IResult, Document {}
+export interface ResultDocument extends IResult, Document {}
 
 const courseResultSchema = new Schema(
   {
@@ -19,7 +19,6 @@ const courseResultSchema = new Schema(
     grade: {
       type: String,
       required: true,
-      trim: true,
       enum: ["A", "B", "C", "D", "E", "F"],
     },
     unit: {
@@ -31,7 +30,7 @@ const courseResultSchema = new Schema(
   { _id: false }
 );
 
-const resultSchema = new Schema(
+const resultSchema = new Schema<ResultDocument>(
   {
     matNumber: {
       type: String,
